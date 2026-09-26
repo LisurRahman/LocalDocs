@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalDocs Pro - Advanced Document Editor</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-docx-js/0.3.5/html-docx.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title-section">
+                <h1>📝 LocalDocs Pro</h1>
+                <input type="text" id="docTitle" class="title-input" placeholder="Untitled Document">
+            </div>
+            <div class="toolbar">
+                <button id="newBtn" title="Create new document">➕ New</button>
+                <button id="saveBtn" title="Save document">💾 Save</button>
+                <button id="exportPdfBtn" title="Export as PDF">📄 PDF</button>
+                <button id="exportTxtBtn" title="Export as TXT">📋 TXT</button>
+                <button id="exportDocxBtn" title="Export as DOCX">📑 DOCX</button>
+                <button id="docsBtn" title="View all documents">📚 Docs</button>
+                <button id="settingsBtn" title="Settings">⚙️ Settings</button>
+                <button id="sidebarBtn" title="Toggle sidebar">☰ Panel</button>
+            </div>
+        </div>
+
+        <div class="editor-wrapper">
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-section">
+                    <h3>Templates</h3>
+                    <div class="sidebar-item" onclick="loadTemplate('letter')">📄 Business Letter</div>
+                    <div class="sidebar-item" onclick="loadTemplate('report')">📊 Report</div>
+                    <div class="sidebar-item" onclick="loadTemplate('resume')">👤 Resume</div>
+                    <div class="sidebar-item" onclick="loadTemplate('notes')">📌 Meeting Notes</div>
+                </div>
+                <div class="sidebar-section">
+                    <h3>Quick Insert</h3>
+                    <div class="sidebar-item" onclick="insertDate()">📅 Today's Date</div>
+                    <div class="sidebar-item" onclick="insertTime()">🕐 Current Time</div>
+                    <div class="sidebar-item" onclick="insertTableDialog()">📊 Table</div>
+                    <div class="sidebar-item" onclick="insertPageBreak()">📄 Page Break</div>
+                </div>
+            </div>
+
+            <div class="editor-section">
+                <div class="formatting-toolbar">
+                    <div class="toolbar-group">
+                        <select id="fontFamily" onchange="changeFontFamily()">
+                            <option value="Arial">Arial</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Verdana">Verdana</option>
+                        </select>
+                        <select id="fontSize" onchange="changeFontSize()">
+                            <option value="12">12px</option>
+                            <option value="14">14px</option>
+                            <option value="16" selected>16px</option>
+                            <option value="18">18px</option>
+                            <option value="20">20px</option>
+                            <option value="24">24px</option>
+                            <option value="28">28px</option>
+                        </select>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <button id="boldBtn" title="Bold (Ctrl+B)" data-format="bold"><strong>B</strong></button>
+                        <button id="italicBtn" title="Italic (Ctrl+I)" data-format="italic"><em>I</em></button>
+                        <button id="underlineBtn" title="Underline (Ctrl+U)" data-format="underline"><u>U</u></button>
+                        <button id="strikeBtn" title="Strikethrough" data-format="strike"><s>S</s></button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <button id="h1Btn" title="Heading 1" data-format="h1">H1</button>
+                        <button id="h2Btn" title="Heading 2" data-format="h2">H2</button>
+                        <button id="h3Btn" title="Heading 3" data-format="h3">H3</button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <button id="ulBtn" title="Bullet List" data-format="ul">• List</button>
+                        <button id="olBtn" title="Numbered List" data-format="ol">1. List</button>
+                        <button id="quoteBtn" title="Quote" data-format="quote">" Quote</button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <button id="leftBtn" title="Align Left" data-format="left">⬅ Left</button>
+                        <button id="centerBtn" title="Align Center" data-format="center">⬇ Center</button>
+                        <button id="rightBtn" title="Align Right" data-format="right">➡ Right</button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <input type="color" id="textColor" title="Text Color" class="color-picker" value="#000000" onchange="changeTextColor()">
+                        <input type="color" id="bgColor" title="Highlight Color" class="color-picker" value="#FFFF00" onchange="changeBackgroundColor()">
+                        <button id="clearBtn" title="Clear Formatting">Clear</button>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <button id="undoBtn" title="Undo (Ctrl+Z)">↶ Undo</button>
+                        <button id="redoBtn" title="Redo (Ctrl+Y)">↷ Redo</button>
+                    </div>
+                </div>
+
+                <div class="editor-container">
+                    <div id="editor" class="editor" contenteditable="true" placeholder="Start typing your document..."></div>
+                </div>
+
+                <div class="stats">
+                    <span id="wordCount">Words: 0</span>
+                    <span id="charCount">Characters: 0</span>
+                    <span id="readTime">Read time: 0 min</span>
+                    <span id="lastSaved">Last saved: Never</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Docs Modal -->
+    <div id="docsModal" class="modal">
+        <div class="modal-content">
+            <h2>My Documents</h2>
+            <div class="search-box">
+                <input type="text" id="searchDocs" placeholder="Search documents...">
+            </div>
+            <div id="docsList" class="docs-grid"></div>
+            <div class="modal-buttons">
+                <button class="cancel" onclick="closeDocsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Doc Modal -->
+    <div id="newDocModal" class="modal">
+        <div class="modal-content">
+            <h2>Create New Document</h2>
+            <input type="text" id="newDocName" placeholder="Document name...">
+            <div class="modal-buttons">
+                <button class="cancel" onclick="closeNewDocModal()">Cancel</button>
+                <button class="confirm" onclick="createNewDoc()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Insert Modal -->
+    <div id="tableModal" class="modal">
+        <div class="modal-content">
+            <h2>Insert Table</h2>
+            <label>Rows: <input type="number" id="tableRows" value="3" min="1" max="20"></label>
+            <br><br>
+            <label>Columns: <input type="number" id="tableCols" value="3" min="1" max="10"></label>
+            <div class="modal-buttons">
+                <button class="cancel" onclick="closeTableModal()">Cancel</button>
+                <button class="confirm" onclick="insertTable()">Insert</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h2>⚙️ Settings</h2>
+            <div class="settings-group">
+                <label>
+                    <input type="checkbox" id="autoSaveToggle" checked>
+                    Auto-save every 30 seconds
+                </label>
+            </div>
+            <div class="settings-group">
+                <label>
+                    <input type="checkbox" id="darkModeToggle">
+                    Dark Mode (Coming Soon)
+                </label>
+            </div>
+            <div class="settings-group">
+                <button onclick="exportAllDocs()" class="settings-btn">📦 Export All Documents</button>
+            </div>
+            <div class="settings-group">
+                <button onclick="importDocs()" class="settings-btn">📥 Import Documents</button>
+            </div>
+            <div class="settings-group">
+                <button onclick="clearAllData()" class="settings-btn danger">🗑️ Clear All Data</button>
+            </div>
+            <div class="modal-buttons">
+                <button class="confirm" onclick="closeSettings()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
